@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관점별 코드 수정 보고서 | Tech & Security Lab</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .report { max-width: 900px; margin: 0 auto; padding: 24px 18px 64px; line-height: 1.7; overflow-wrap: anywhere; }
+        .report h2 { margin-top: 3rem; border-bottom: 1px solid #ddd; padding-bottom: .35rem; }
+        .report h3 { margin-top: 2rem; }
+        .report h4 { margin-bottom: .4rem; }
+        .report pre { overflow-x: auto; background: #17202b; color: #f2f5f8; padding: 1rem; border-radius: 10px; line-height: 1.5; white-space: pre; }
+        .report pre code { font: 14px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; }
+        .report :not(pre) > code { background: #eef1f5; padding: .1em .3em; border-radius: 4px; }
+        .report .note { background: #f2f6fa; padding: .8rem 1rem; border-radius: 8px; }
+        .report table { border-collapse: collapse; width: 100%; }
+        .report td, .report th { border: 1px solid #ddd; padding: .5rem; text-align: left; }
+    </style>
+</head>
+<body>
+    <main class="report">
+        <p><a href="index.html">← 목록으로 돌아가기</a></p>
+        <h1>관점별 코드 수정 보고서</h1>
+        <p>PHP 게시판의 입력 검증, 인증 및 세션, 접근 제어, 파일 업로드 관련 수정 전·후 코드를 정리한 보고서입니다.</p>
+        <p class="note">코드와 주석은 원문 그대로 수록했습니다. <code>...</code> 등 원문의 생략 표기도 유지했으며, 코드 블록은 전체 파일이 아닌 발췌 코드입니다.</p>
+        <h2>목차</h2>
+        <ul><li><a href="#perspective-1">관점 1. 입력 검증</a></li><li><a href="#perspective-2">관점 2. 인증 및 세션</a></li><li><a href="#perspective-3">관점 3. 접근 제어</a></li><li><a href="#perspective-4">관점 4. 파일 업로드</a></li><li><a href="#perspective-5">관점 5. 설정 및 정보 노출</a></li></ul>
+        <a id="perspective-1"></a>
+        <h2>관점 1. 입력 검증</h2>
+        <p>SQL 인젝션 및 XSS 관련 코드 변경 내용을 정리합니다.</p>
+        <h3>1-2 | SQL 쿼리 매개변수 처리</h3>
+        <p>DB 조회에 Prepared Statement를 적용합니다.</p>
+        <h4>수정 전</h4>
+        <pre><code class="language-php">$query = &quot;SELECT * FROM users WHERE username = &#x27;$username&#x27; AND password = &#x27;$password&#x27;&quot;; </code></pre>
+        <h4>수정 후</h4>
+        <pre><code class="language-php">$stmt = $conn-&gt;prepare(&quot;SELECT id, username, nickname, is_admin FROM users WHERE username = ? AND password = ?&quot;); $stmt-&gt;bind_param(&quot;ss&quot;, $username, $password);</code></pre>
+        <h3>1-3 · 1-5 | 게시글·댓글·쪽지 출력 처리</h3>
+        <p>출력 시 <code>htmlspecialchars()</code>를 사용하도록 변경합니다.</p>
+        <h4>수정 전</h4>
+        <pre><code class="language-php">&lt;?php echo $post[&#x27;title&#x27;]; ?&gt;</code></pre>
+        <h4>수정 후</h4>
+        <pre><code class="language-php">&lt;?php echo htmlspecialchars($post[&#x27;title&#x27;], ENT_QUOTES, &#x27;UTF-8&#x27;); ?&gt;</code></pre>
+        <h3>1-4 | 오류 메시지의 사용자 입력 출력</h3>
+        <p>오류 메시지에 포함되는 사용자 입력값을 <code>htmlspecialchars()</code>로 처리합니다.</p>
+        <h4>수정 전</h4>
+        <pre><code class="language-php">echo &quot;&lt;span style=&#x27;color:red;&#x27;&gt;이미 사용 중인 아이디입니다 ($username).&lt;/span&gt;&quot;;</code></pre>
+        <h4>수정 후</h4>
+        <pre><code class="language-php">$safe_username = htmlspecialchars($username, ENT_QUOTES, &#x27;UTF-8&#x27;); echo &quot;&lt;span style=&#x27;color:red;&#x27;&gt;이미 사용 중인 아이디입니다 (&quot; . $safe_username . &quot;).&lt;/span&gt;&quot;;</code></pre>
+        <a id="perspective-2"></a>
+        <h2>관점 2. 인증 및 세션</h2>
+        <p>비밀번호 저장·검증 방식과 세션 처리 변경 내용을 정리합니다.</p>
+        <h3>2-1 · 2-2 | 비밀번호 정책과 해시 검증</h3>
+        <p>회원가입 시 정규식으로 비밀번호 정책을 검사하고, <code>password_hash()</code>와 <code>password_verify()</code>로 비밀번호를 저장·검증합니다.</p>
+        <h4>수정 전</h4>
+        <pre><code class="language-php">// 기존: 평문 저장 및 단순 공백 검사 // register.php 
+if(!empty($username) &amp;&amp; !empty($password) &amp;&amp; !empty($nickname)) { $query = &quot;INSERT INTO users (username, password, nickname) VALUES (&#x27;$username&#x27;, &#x27;$password&#x27;, &#x27;$nickname&#x27;)&quot;; if(mysqli_query($conn, $query)) { ... }
+
+// 기존: 평문 비밀번호를 쿼리로 직접 비교 // login.php 
+$query = &quot;SELECT * FROM users WHERE username = &#x27;$username&#x27; AND password = &#x27;$password&#x27;&quot;;</code></pre>
+        <h4>수정 후</h4>
+        <pre><code class="language-php">// 변경 코드 : 비밀번호 정책 검증 및 Bcrypt 해싱 처리 // register.php 수정
+$pw_pattern = &#x27;/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&amp;])[A-Za-z\d@$!%*#?&amp;]{6,}$/&#x27;; 
+if(empty($username) || empty($password) || empty($nickname)) { 
+$error = &quot;모든 필드를 입력해 주세요.&quot;; } 
+elseif(!preg_match($pw_pattern, $password)) { $error = &quot;비밀번호는 최소 6자 이상이며, 영문, 숫자, 특수문자를 모두 포함해야 합니다.&quot;; } 
+else { 
+// 비밀번호 해싱 
+$hashed_password = password_hash($password, PASSWORD_DEFAULT); 
+$stmt = $conn-&gt;prepare(&quot;INSERT INTO users (username, password, nickname) VALUES (?, ?, ?)&quot;); 
+$stmt-&gt;bind_param(&quot;sss&quot;, $username, $hashed_password, $nickname); 
+if($stmt-&gt;execute()) { ... }
+}
+
+// 변경: DB에서 ID로 조회 후 password_verify()로 해시 검증 // login.php 수정
+$stmt = $conn-&gt;prepare(&quot;SELECT id, username, password, nickname, is_admin FROM users WHERE username = ?&quot;); 
+$stmt-&gt;bind_param(&quot;s&quot;, $username); $stmt-&gt;execute(); 
+$result = $stmt-&gt;get_result(); 
+if($result &amp;&amp; $user = $result-&gt;fetch_assoc()) { 
+if (password_verify($password, $user[&#x27;password&#x27;])) { 
+// 비밀번호 일치 시 세션 처리
+ }
+ }</code></pre>
+        <h3>2-3 | 세션 쿠키 설정</h3>
+        <p>세션 시작 전에 HttpOnly와 SameSite 옵션을 설정합니다.</p>
+        <h4>수정 전</h4>
+        <pre><code class="language-php">// 기존: 기본 설정으로 세션 시작 
+session_start();</code></pre>
+        <h4>수정 후</h4>
+        <pre><code class="language-php">// 변경: HttpOnly 및 SameSite 옵션을 설정한 뒤 세션 시작 
+if (session_status() === PHP_SESSION_NONE) { 
+session_set_cookie_params([ 
+&#x27;lifetime&#x27; =&gt; 0,
+&#x27;path&#x27; =&gt; &#x27;/&#x27;, 
+&#x27;domain&#x27; =&gt; &#x27;&#x27;, 
+&#x27;secure&#x27; =&gt; false, // HTTPS 환경 사용 시 true 
+&#x27;httponly&#x27; =&gt; true, // JS를 이용한 쿠키 접근 차단 
+&#x27;samesite&#x27; =&gt; &#x27;Lax&#x27; ]); 
+session_start(); 
+}</code></pre>
+        <h3>2-4 | 로그인·로그아웃 시 세션 처리</h3>
+        <p>로그인 직후 세션 ID를 재발급하고, 로그아웃 시 세션 배열 초기화·쿠키 만료·세션 파기를 수행하도록 변경합니다.</p>
+        <h4>수정 전</h4>
+        <pre><code class="language-php">// 기존: 단순히 session_destroy만 실행 // logout.php 
+session_destroy(); 
+header(&quot;Location: index.php&quot;);</code></pre>
+        <h4>수정 후</h4>
+        <pre><code class="language-php">// 2-3 에서 수정한 login.php 파일을 한번 더 추가 수정
+if (password_verify($password, $user[&#x27;password&#x27;])) {
+    // 세션 고정 공격(Session Fixation) 방지를 위해 세션 ID 재발급 
+session_regenerate_id(true); 
+$_SESSION[&#x27;user_id&#x27;] = $user[&#x27;id&#x27;]; $_SESSION[&#x27;username&#x27;] = $user[&#x27;username&#x27;]; 
+... 
+}
+
+// 변경: 세션 배열 초기화 및 세션 쿠키 만료 후 파기 // logout.php 수정
+$_SESSION = array(); 
+if (ini_get(&quot;session.use_cookies&quot;)) { 
+$params = session_get_cookie_params(); 
+setcookie(session_name(), &#x27;&#x27;, time() - 42000, 
+$params[&quot;path&quot;], $params[&quot;domain&quot;], $params[&quot;secure&quot;], $params[&quot;httponly&quot;] 
+); 
+} 
+session_destroy(); 
+header(&quot;Location: index.php&quot;);</code></pre>
+        <a id="perspective-3"></a>
+        <h2>관점 3. 접근 제어</h2>
+        <p>관리자 페이지와 게시글·댓글 삭제 요청의 권한 검증 변경 내용을 정리합니다.</p>
+        <h3>3-2 | 관리자 페이지 접근 검증</h3>
+        <p>로그인 여부와 관리자 권한을 함께 검증합니다.</p>
+        <h4>수정 전</h4>
+        <pre><code class="language-php">// 기존: 단순 로그인 여부만 검증하고 관리자 권한 미검증 // admin.php
+if(!isset($_SESSION[&#x27;user_id&#x27;])) {
+    echo &quot;&lt;script&gt;alert(&#x27;로그인이 필요합니다.&#x27;); location.href=&#x27;login.php&#x27;;&lt;/script&gt;&quot;;
+    exit;
+}
+$users = mysqli_query($conn, &quot;SELECT * FROM users ORDER BY id DESC&quot;);</code></pre>
+        <h4>수정 후</h4>
+        <pre><code class="language-php">// 변경: 세션 검증 시 관리자 권한 조건 추가 // admin.php 수정
+if (!isset($_SESSION[&#x27;user_id&#x27;]) || !isset($_SESSION[&#x27;is_admin&#x27;]) || $_SESSION[&#x27;is_admin&#x27;] != 1) {
+    echo &quot;&lt;script&gt;alert(&#x27;관리자만 접근할 수 있습니다.&#x27;); location.href=&#x27;index.php&#x27;;&lt;/script&gt;&quot;;
+    exit;
+}</code></pre>
+        <h3>3-3 · 3-4 | 게시글·댓글 삭제 권한 검증</h3>
+        <p>DB에서 작성자를 조회하여 작성자 본인 또는 관리자 여부를 검증합니다. 관리자 권한 확인을 삭제 요청의 백엔드 검증에 포함합니다.</p>
+        <h4>수정 전</h4>
+        <pre><code class="language-php">3-3 // 기존: 작성자 권한 검증 없이 URL 파라미터로 즉시 삭제 // delete_post.php
+3-4 // 기존: 관리자 전용 삭제 기능 요청 시 관리자 세션 검증 부재 // delete_post.php
+
+$id = isset($_GET[&#x27;id&#x27;]) ? $_GET[&#x27;id&#x27;] : 0;
+mysqli_query($conn, &quot;DELETE FROM comments WHERE post_id = $id&quot;);
+$delete_query = &quot;DELETE FROM posts WHERE id = $id&quot;;
+
+// 기존: 작성자 권한 검증 없이 댓글 즉시 삭제 // delete_comment.php
+
+$id = isset($_GET[&#x27;id&#x27;]) ? (int)$_GET[&#x27;id&#x27;] : 0;
+$stmt = $conn-&gt;prepare(&quot;DELETE FROM comments WHERE id = ?&quot;);
+$stmt-&gt;bind_param(&quot;i&quot;, $id);
+$stmt-&gt;execute();</code></pre>
+        <h4>수정 후</h4>
+        <pre><code class="language-php">// 변경: DB에서 작성자 확인 후 권한 검증 로직 추가 // delete_post.php 수정
+$id = isset($_GET[&#x27;id&#x27;]) ? (int)$_GET[&#x27;id&#x27;] : 0;
+$user_id = $_SESSION[&#x27;user_id&#x27;];
+$is_admin = $_SESSION[&#x27;is_admin&#x27;] ?? 0;
+
+$stmt = $conn-&gt;prepare(&quot;SELECT user_id FROM posts WHERE id = ?&quot;);
+$stmt-&gt;bind_param(&quot;i&quot;, $id);
+$stmt-&gt;execute();
+$post = $stmt-&gt;get_result()-&gt;fetch_assoc();
+
+if(!$post || ($post[&#x27;user_id&#x27;] != $user_id &amp;&amp; $is_admin != 1)) {
+    echo &quot;&lt;script&gt;alert(&#x27;삭제 권한이 없습니다.&#x27;); location.href=&#x27;index.php&#x27;;&lt;/script&gt;&quot;;
+    exit;
+}
+
+$del_stmt = $conn-&gt;prepare(&quot;DELETE FROM posts WHERE id = ?&quot;);
+$del_stmt-&gt;bind_param(&quot;i&quot;, $id);
+$del_stmt-&gt;execute();
+
+// 변경: 댓글 작성자 본인 확인 후 삭제 // delete_comment.php 수정
+$stmt = $conn-&gt;prepare(&quot;SELECT user_id FROM comments WHERE id = ?&quot;);
+$stmt-&gt;bind_param(&quot;i&quot;, $id);
+$stmt-&gt;execute();
+$comment = $stmt-&gt;get_result()-&gt;fetch_assoc();
+
+if(!$comment || ($comment[&#x27;user_id&#x27;] != $user_id &amp;&amp; $is_admin != 1)) {
+    echo &quot;&lt;script&gt;alert(&#x27;댓글 삭제 권한이 없습니다.&#x27;); location.href=&#x27;view.php?id=$post_id&#x27;;&lt;/script&gt;&quot;;
+    exit;
+}</code></pre>
+        <a id="perspective-4"></a>
+        <h2>관점 4. 파일 업로드</h2>
+        <p>업로드 파일의 확장자 검사와 저장 파일명 변경 내용을 정리합니다.</p>
+        <h3>4-1 | 허용 확장자 검사</h3>
+        <p>허용 확장자 목록을 기준으로 업로드 파일의 확장자를 검사합니다.</p>
+        <h4>수정 전</h4>
+        <pre><code class="language-php">// 기존: 파일 업로드 시 확장자 검증 로직 부재 // write.php / mypage.php
+
+if (isset($_FILES[&#x27;file&#x27;]) &amp;&amp; $_FILES[&#x27;file&#x27;][&#x27;error&#x27;] == UPLOAD_ERR_OK) {
+    $upload_dir = &#x27;uploads/&#x27;;
+    $destination = $upload_dir . basename($_FILES[&#x27;file&#x27;][&#x27;name&#x27;]);
+    move_uploaded_file($_FILES[&#x27;file&#x27;][&#x27;tmp_name&#x27;], $destination);
+}</code></pre>
+        <h4>수정 후</h4>
+        <pre><code class="language-php">// 변경: 화이트리스트 확장자 검증 추가 // write.php / mypage.php 수정
+
+$file_name = $_FILES[&#x27;file&#x27;][&#x27;name&#x27;];
+$file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+$allowed_exts = array(&#x27;jpg&#x27;, &#x27;jpeg&#x27;, &#x27;png&#x27;, &#x27;gif&#x27;, &#x27;pdf&#x27;, &#x27;txt&#x27;, &#x27;zip&#x27;);
+
+if (!in_array($file_ext, $allowed_exts)) {
+    echo &quot;&lt;script&gt;alert(&#x27;허용되지 않는 파일 형식입니다.&#x27;); history.back();&lt;/script&gt;&quot;;
+    exit;
+}</code></pre>
+        <h3>4-2 | 저장 파일명 난수화</h3>
+        <p><code>random_bytes()</code>를 사용하여 저장 파일명을 난수화합니다.</p>
+        <h4>수정 전</h4>
+        <pre><code class="language-php">// 기존: 웹 접근이 가능한 uploads 디렉터리에 원본 파일명 그대로 저장 // write.php / mypage.php
+// 난수화 또는 파일명 변경 없이 사용자 입력 파일명 그대로 저장
+
+$destination = $upload_dir . basename($_FILES[&#x27;file&#x27;][&#x27;name&#x27;]);</code></pre>
+        <h4>수정 후</h4>
+        <pre><code class="language-php">// 변경: random_bytes()를 사용한 파일명 난수화 저장 // write.php / mypage.php 수정
+
+$new_filename = bin2hex(random_bytes(16)) . &#x27;.&#x27; . $file_ext;
+$destination = $upload_dir . $new_filename;
+move_uploaded_file($_FILES[&#x27;file&#x27;][&#x27;tmp_name&#x27;], $destination);</code></pre>
+        <a id="perspective-5"></a>
+        <h2>관점 5. 설정 및 정보 노출</h2>
+        <p>원문에서 아래 항목은 작성되지 않았습니다.</p>
+        <table><tr><th>항목</th><th>작성 상태</th></tr><tr><td>수정 전 코드</td><td>미작성</td></tr><tr><td>수정 후 코드</td><td>미작성</td></tr><tr><td>수정 이유</td><td>미작성 — 문제의 원인과 변경 내용</td></tr><tr><td>확인 결과</td><td>미작성 — 문제 해결 여부와 정상 기능 확인 결과</td></tr></table>
+    </main>
+</body>
+</html>
