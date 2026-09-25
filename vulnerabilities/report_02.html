@@ -77,18 +77,37 @@
             font-size: 0.95rem;
             color: #cbd5e0;
         }
-        .vuln-detail-card {
-            background-color: #1a202c;
-            border: 1px solid #e53e3e;
-            border-radius: 8px;
-            padding: 18px 20px;
-            margin: 15px 0;
-        }
-        .vuln-detail-card h3 {
-            margin-top: 0;
-            color: #feb2b2;
-            font-size: 1.1rem;
-        }
+.vuln-detail-card {
+    background-color: #1a202c;
+    border: 1px solid #e53e3e;
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 15px 0;
+    color: #e2e8f0; /* 본문 전체 글자색을 밝게 설정 */
+}
+
+    .vuln-detail-card h3 {
+        margin-top: 0;
+        color: #feb2b2;
+        font-size: 1.1rem;
+    }
+    
+    .vuln-detail-card p {
+        color: #e2e8f0; /* 본문 텍스트가 확실하게 보이도록 지정 */
+        line-height: 1.6;
+        margin: 8px 0;
+    }
+    
+    .vuln-detail-card strong {
+        color: #63b3ed; /* '상세 내용:', '대응 방안:' 강조 텍스트 색상 */
+    }
+    
+    .vuln-detail-card code {
+        background-color: #2d3748;
+        color: #f6ad55;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
         ul, ol {
             padding-left: 20px;
             line-height: 1.7;
@@ -210,7 +229,7 @@
         <div class="callout-box">
             📌 <strong>참고사항</strong>: '양호' 및 '재현 안 됨' 결과는 지정된 진단 범위 및 점검 항목 내에서 수행된 검사 결과이며, 애플리케이션 전체에 대한 절대적인 취약점 부재를 의미하지는 않습니다.
         </div>
-
+        
         <!-- 3. 발견한 취약점 상세 -->
         <h2 class="section-title">3. 발견한 취약점 상세</h2>
         <div class="vuln-detail-card">
