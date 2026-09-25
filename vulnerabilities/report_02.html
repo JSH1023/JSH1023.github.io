@@ -1,62 +1,244 @@
-# 웹사이트 취약점 진단 보고서
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[Report #02] CYBER MARKET 취약점 진단 보고서 - Tech & Security Lab</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        /* 보고서 전용 상세 스타일 */
+        .report-header {
+            border-bottom: 2px solid #2d3748;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .report-meta {
+            background-color: #1a202c;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+        }
+        .report-meta table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .report-meta td {
+            padding: 6px 0;
+            color: #e2e8f0;
+        }
+        .report-meta td.label {
+            font-weight: bold;
+            color: #a0aec0;
+            width: 120px;
+        }
+        .section-title {
+            color: #63b3ed;
+            border-left: 4px solid #3182ce;
+            padding-left: 10px;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        .vuln-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .vuln-table th, .vuln-table td {
+            border: 1px solid #2d3748;
+            padding: 10px 12px;
+            text-align: left;
+        }
+        .vuln-table th {
+            background-color: #2d3748;
+            color: #e2e8f0;
+        }
+        .status-pass {
+            color: #48bb78;
+            font-weight: bold;
+            text-align: center;
+        }
+        .status-vuln {
+            color: #f56565;
+            font-weight: bold;
+            text-align: center;
+        }
+        .status-none {
+            color: #a0aec0;
+            text-align: center;
+        }
+        .callout-box {
+            background-color: #1a202c;
+            border-left: 4px solid #a0aec0;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.95rem;
+            color: #cbd5e0;
+        }
+        .vuln-detail-card {
+            background-color: #1a202c;
+            border: 1px solid #e53e3e;
+            border-radius: 8px;
+            padding: 18px 20px;
+            margin: 15px 0;
+        }
+        .vuln-detail-card h3 {
+            margin-top: 0;
+            color: #feb2b2;
+            font-size: 1.1rem;
+        }
+        ul, ol {
+            padding-left: 20px;
+            line-height: 1.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 뒤로가기 버튼 -->
+        <div style="margin-bottom: 15px;">
+            <a href="../vulnerability-reports.html" style="text-decoration: none; color: #63b3ed; font-weight: bold;">← 진단 보고서 목록으로 돌아가기</a>
+        </div>
 
-## 1. 진단 개요
+        <header class="report-header">
+            <h1>🛡️ 웹사이트 취약점 진단 보고서</h1>
+            <p>CYBER MARKET 서비스 수동 점검 및 패킷 분석 결과</p>
+        </header>
 
-* **진단 대상**: CYBER MARKET (`https://emperorkyw.xo.je`)
-* **진단 일시**: 2026년 09월 25일
-* **진단자**: 전승현
-* **진단 범위**: 전체 웹 애플리케이션 주요 페이지
-* **진단 방식**: 수동 점검(Manual Testing) 및 Burp Suite를 활용한 HTTP 요청·응답 패킷 분석
-* **제한 사항**: 데이터 삭제 및 서비스 중단 방지를 위해 재현 및 검증 수준에서 진단 수행
+        <!-- 1. 진단 개요 -->
+        <h2 class="section-title">1. 진단 개요</h2>
+        <div class="report-meta">
+            <table>
+                <tr>
+                    <td class="label">진단 대상</td>
+                    <td>CYBER MARKET (<a href="https://emperorkyw.xo.je" target="_blank" style="color: #63b3ed;">https://emperorkyw.xo.je</a>)</td>
+                </tr>
+                <tr>
+                    <td class="label">진단 일시</td>
+                    <td>2026년 09월 25일</td>
+                </tr>
+                <tr>
+                    <td class="label">진 단 자</td>
+                    <td>전승현</td>
+                </tr>
+                <tr>
+                    <td class="label">진단 범위</td>
+                    <td>전체 웹 애플리케이션 주요 페이지</td>
+                </tr>
+                <tr>
+                    <td class="label">진단 방식</td>
+                    <td>수동 점검 (Manual Testing) 및 Burp Suite를 활용한 HTTP 요청·응답 패킷 분석</td>
+                </tr>
+                <tr>
+                    <td class="label">제한 사항</td>
+                    <td>데이터 삭제 및 서비스 중단 방지를 위해 재현 및 검증 수준에서 진단 수행</td>
+                </tr>
+            </table>
+        </div>
 
-### 주요 점검 대상 경로
-* **메인 페이지**: `index.php`
-* **회원가입**: `register.php`
-* **로그인**: `login.php`
-* **게시판 (목록)**: `board/list.php`
-* **글 작성 / 수정**: `board/write.php`
-* **글 보기**: `board/view.php`
-* **상품 페이지**: `product.php`
-* **관리자 페이지**: `admin/`
+        <h3>주요 점검 대상 경로</h3>
+        <ul>
+            <li><strong>메인 페이지:</strong> <code>index.php</code></li>
+            <li><strong>회원가입:</strong> <code>register.php</code></li>
+            <li><strong>로그인:</strong> <code>login.php</code></li>
+            <li><strong>게시판 (목록):</strong> <code>board/list.php</code></li>
+            <li><strong>글 작성 / 수정:</strong> <code>board/write.php</code></li>
+            <li><strong>글 보기:</strong> <code>board/view.php</code></li>
+            <li><strong>상품 페이지:</strong> <code>product.php</code></li>
+            <li><strong>관리자 페이지:</strong> <code>admin/</code></li>
+        </ul>
 
----
+        <!-- 2. 점검 결과 요약 -->
+        <h2 class="section-title">2. 점검 결과 요약</h2>
+        <table class="vuln-table">
+            <thead>
+                <tr>
+                    <th>점검 관점</th>
+                    <th>확인한 위치·기능</th>
+                    <th style="text-align: center; width: 100px;">진단 결과</th>
+                    <th>발견 사항</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>SQL Injection</strong></td>
+                    <td>로그인, 검색 등 입력 파라미터</td>
+                    <td class="status-pass">양호</td>
+                    <td>특수문자 및 쿼리 구문 입력 시 DB 오류/우회 미발견</td>
+                </tr>
+                <tr>
+                    <td><strong>XSS (Cross-Site Scripting)</strong></td>
+                    <td>글 작성, 댓글, 검색 기능</td>
+                    <td class="status-pass">양호</td>
+                    <td>스크립트 입력 시 이스케이프 및 검증 처리 확인</td>
+                </tr>
+                <tr>
+                    <td><strong>인증 & 세션</strong></td>
+                    <td>로그인, 관리자 도구 등</td>
+                    <td class="status-vuln">취약</td>
+                    <td>세션 쿠키 내 HttpOnly 속성 누락 식별</td>
+                </tr>
+                <tr>
+                    <td><strong>IDOR · 접근제어</strong></td>
+                    <td>게시글, 마이페이지 등</td>
+                    <td class="status-pass">양호</td>
+                    <td>타 사용자 자원에 대한 부적절한 접근 제한 확인</td>
+                </tr>
+                <tr>
+                    <td><strong>권한 검사</strong></td>
+                    <td>관리자 페이지, 로그인 필요 기능</td>
+                    <td class="status-pass">양호</td>
+                    <td>미인증 사용자의 인가되지 않은 기능 접근 통제 확인</td>
+                </tr>
+                <tr>
+                    <td><strong>파일 업로드</strong></td>
+                    <td>첨부파일, 프로필 사진 등</td>
+                    <td class="status-none">미확인</td>
+                    <td>업로드 인터페이스 부재로 인한 점검 제외</td>
+                </tr>
+                <tr>
+                    <td><strong>정보 노출 & 설정</strong></td>
+                    <td>오류 메시지, 백업 파일 등</td>
+                    <td class="status-none">점검 제외</td>
+                    <td>범위 외 항목으로 점검 제외</td>
+                </tr>
+            </tbody>
+        </table>
 
-## 2. 점검 결과 요약
+        <div class="callout-box">
+            📌 <strong>참고사항</strong>: '양호' 및 '재현 안 됨' 결과는 지정된 진단 범위 및 점검 항목 내에서 수행된 검사 결과이며, 애플리케이션 전체에 대한 절대적인 취약점 부재를 의미하지는 않습니다.
+        </div>
 
-| 점검 관점 | 확인한 위치·기능 | 진단 결과 | 발견 사항 |
-| :--- | :--- | :---: | :--- |
-| **SQL Injection** | 로그인, 검색 등 입력 파라미터 | **양호** | 특수문자 및 쿼리 구문 입력 시 DB 오류/우회 미발견 |
-| **XSS (Cross-Site Scripting)** | 글 작성, 댓글, 검색 기능 | **양호** | 스크립트 입력 시 이스케이프 및 검증 처리 확인 |
-| **인증 & 세션** | 로그인, 관리자 도구 등 | **취약** | 세션 쿠키 내 HttpOnly 속성 누락 식별 |
-| **IDOR · 접근제어** | 게시글, 마이페이지 등 | **양호** | 타 사용자 자원에 대한 부적절한 접근 제한 확인 |
-| **권한 검사** | 관리자 페이지, 로그인 필요 기능 | **양호** | 미인증 사용자의 인가되지 않은 기능 접근 통제 확인 |
-| **파일 업로드** | 첨부파일, 프로필 사진 등 | **미확인** | 업로드 인터페이스 부재로 인한 점검 제외 |
-| **정보 노출 & 설정** | 오류 메시지, 백업 파일 등 | **점검 제외** | 범위 외 항목으로 점검 제외 |
+        <!-- 3. 발견한 취약점 상세 -->
+        <h2 class="section-title">3. 발견한 취약점 상세</h2>
+        <div class="vuln-detail-card">
+            <h3>🚨 3.1. 세션 쿠키 내 HttpOnly 속성 미설정 (취약)</h3>
+            <p><strong>상세 내용:</strong> 세션 관리 쿠키에 <code>HttpOnly</code> 플래그가 설정되어 있지 않아, 향후 XSS 취약점이 발생할 경우 클라이언트 자바스크립트(<code>document.cookie</code>)를 통한 세션 탈취 및 계정 도용 위험이 존재합니다.</p>
+            <p><strong>대응 방안:</strong> 서버 측 세션 쿠키 발급 시 <code>HttpOnly</code> 속성을 필수로 설정하여 자바스크립트를 통한 쿠키 접근을 차단해야 합니다.</p>
+        </div>
 
-> **참고사항**: '양호' 및 '재현 안 됨' 결과는 지정된 진단 범위 및 점검 항목 내에서 수행된 검사 결과이며, 애플리케이션 전체에 대한 절대적인 취약점 부재를 의미하지는 않습니다.
+        <!-- 4. 미확인 항목 및 점검 한계 -->
+        <h2 class="section-title">4. 미확인 항목 및 점검 한계</h2>
+        <ol>
+            <li><strong>파일 업로드 기능 미존재</strong>
+                <p style="margin-top: 4px; color: #a0aec0;">웹 애플리케이션 내 파일 업로드 인터페이스가 구현되어 있지 않아 해당 점검 항목은 확인하지 못함.</p>
+            </li>
+        </ol>
 
----
+        <!-- 5. 결론 및 종합 의견 -->
+        <h2 class="section-title">5. 결론 및 종합 의견</h2>
+        <ul>
+            <li><strong>점검한 기능:</strong> 로그인, 회원가입, 게시판, 상품, 관리자 페이지 등</li>
+            <li><strong>확인된 취약점:</strong> 인증 & 세션 (1건)</li>
+            <li><strong>우선 수정할 항목:</strong> 세션 쿠키 <code>HttpOnly</code> 속성 적용</li>
+        </ul>
 
-## 3. 발견한 취약점 상세
-
-### 3.1. 세션 쿠키 내 HttpOnly 속성 미설정 (취약)
-* **상세 내용**: 세션 관리 쿠키에 `HttpOnly` 플래그가 설정되어 있지 않아, XSS 취약점이 발생할 경우 자바스크립트(`document.cookie`)를 통한 세션 고jacking 및 쿠키 탈취 위험 존재.
-* **대응 방안**: 서버 측 세션 쿠키 발급 시 `HttpOnly` 속성을 필수 설정하여 클라이언트 사이드 스크립트에서의 쿠키 접근을 차단.
-
----
-
-## 4. 미확인 항목 및 점검 한계
-
-1. **파일 업로드 기능 미존재**
-   * 웹 애플리케이션 내 파일 업로드 인터페이스가 구현되어 있지 않아 해당 점검 항목은 확인하지 못함.
-
----
-
-## 5. 결론 및 종합 의견
-
-* **점검한 기능**: 로그인, 회원가입, 게시판, 상품, 관리자 페이지 등
-* **확인된 취약점**: 인증 & 세션 (1건)
-* **우선 수정할 항목**: 세션 쿠키 `HttpOnly` 속성 적용
-
-### 종합 의견
-주요 사용자 및 관리자 인터페이스를 대상으로 점검을 수행한 결과, SQL Injection, XSS, 접근제어 등 대다수의 핵심 항목은 안전하게 구현되어 있었습니다. 다만, **세션 쿠키의 HttpOnly 속성 누락**이 식별되었으므로, 향후 발생할 수 있는 스크립트 기반 쿠키 탈취 공격을 예방하기 위해 우선적으로 서버 쿠키 설정 옵션을 보완할 것을 권장합니다.
+        <h3>종합 의견</h3>
+        <p style="line-height: 1.7; color: #e2e8f0;">
+            주요 사용자 및 관리자 인터페이스를 대상으로 점검을 수행한 결과, SQL Injection, XSS, 접근제어 등 대다수의 핵심 항목은 안전하게 구현되어 있었습니다. 다만, <strong>세션 쿠키의 HttpOnly 속성 누락</strong>이 식별되었으므로, 향후 발생할 수 있는 스크립트 기반 쿠키 탈취 공격을 예방하기 위해 우선적으로 서버 쿠키 설정 옵션을 보완할 것을 권장합니다.
+        </p>
+    </div>
+</body>
+</html>
