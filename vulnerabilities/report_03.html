@@ -1,1 +1,330 @@
-12
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[Report #03] Vulnerable Shop 취약점 진단 보고서 - Tech & Security Lab</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        /* 외부 style.css의 색상 간섭을 완전히 차단하기 위한 강제 스타일 override */
+        body, div, p, li, td, th, span {
+            color: #2d3748;
+        }
+
+        .report-header {
+            border-bottom: 2px solid #cbd5e0;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .report-header h1 {
+            color: #1a202c !important;
+        }
+
+        .report-header p {
+            color: #4a5568 !important;
+        }
+
+        /* 1. 진단 개요 메타 박스 */
+        .report-meta {
+            background-color: #f7fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+        }
+
+        .report-meta table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .report-meta td {
+            padding: 8px 0;
+            color: #2d3748 !important;
+        }
+
+        .report-meta td.label {
+            font-weight: bold;
+            color: #4a5568 !important;
+            width: 120px;
+        }
+
+        /* 섹션 타이틀 */
+        .section-title {
+            color: #2b6cb0 !important;
+            border-left: 4px solid #3182ce;
+            padding-left: 10px;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        /* 목록 및 inline code 가독성 수정 */
+        ul, ol {
+            padding-left: 20px;
+            line-height: 1.8;
+            color: #2d3748 !important;
+        }
+
+        ul li, ol li {
+            color: #2d3748 !important;
+        }
+
+        ul li strong, ol li strong {
+            color: #1a202c !important;
+        }
+
+        code {
+            background-color: #edf2f7 !important;
+            color: #c53030 !important;
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 0.9em;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* 2. 점검 결과 테이블 */
+        .vuln-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .vuln-table th, .vuln-table td {
+            border: 1px solid #cbd5e0 !important;
+            padding: 10px 12px;
+            text-align: left;
+            color: #2d3748 !important;
+        }
+
+        .vuln-table th {
+            background-color: #edf2f7 !important;
+            color: #1a202c !important;
+            font-weight: bold;
+        }
+
+        .status-pass {
+            color: #2f855a !important;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .status-vuln {
+            color: #c53030 !important;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .status-none {
+            color: #718096 !important;
+            text-align: center;
+        }
+
+        .callout-box {
+            background-color: #f7fafc !important;
+            border-left: 4px solid #4a5568 !important;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.95rem;
+            color: #4a5568 !important;
+        }
+
+        .callout-box strong {
+            color: #1a202c !important;
+        }
+
+        /* 3. 취약점 상세 카드 */
+        .vuln-detail-card {
+            background-color: #fff5f5 !important;
+            border: 1px solid #feb2b2 !important;
+            border-radius: 8px;
+            padding: 18px 20px;
+            margin: 15px 0;
+            color: #2d3748 !important;
+        }
+
+        .vuln-detail-card h3 {
+            margin-top: 0;
+            color: #9b2c2c !important;
+            font-size: 1.1rem;
+        }
+
+        .vuln-detail-card p {
+            color: #2d3748 !important;
+            line-height: 1.6;
+            margin: 8px 0;
+        }
+
+        .vuln-detail-card strong {
+            color: #2b6cb0 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 뒤로가기 버튼 -->
+        <div style="margin-bottom: 15px;">
+            <a href="../vulnerability-reports.html" style="text-decoration: none; color: #3182ce; font-weight: bold;">← 진단 보고서 목록으로 돌아가기</a>
+        </div>
+
+        <header class="report-header">
+            <h1>🛡️ 웹사이트 취약점 진단 보고서</h1>
+            <p>Vulnerable Shop 서비스 수동 점검 및 패킷 분석 결과</p>
+        </header>
+
+        <!-- 1. 진단 개요 -->
+        <h2 class="section-title">1. 진단 개요</h2>
+        <div class="report-meta">
+            <table>
+                <tr>
+                    <td class="label">진단 대상</td>
+                    <td>Vulnerable Shop (<a href="https://26501001mj.xo.je" target="_blank" style="color: #3182ce; font-weight: bold;">https://26501001mj.xo.je</a>)</td>
+                </tr>
+                <tr>
+                    <td class="label">진단 일시</td>
+                    <td>2026년 09월 29일</td>
+                </tr>
+                <tr>
+                    <td class="label">진 단 자</td>
+                    <td>전승현</td>
+                </tr>
+                <tr>
+                    <td class="label">진단 범위</td>
+                    <td>허가받은 페이지 및 주요 기능</td>
+                </tr>
+                <tr>
+                    <td class="label">진단 방식</td>
+                    <td>수동 점검 (Manual Testing) 및 Burp Suite를 활용한 HTTP 요청·응답 패킷 분석</td>
+                </tr>
+                <tr>
+                    <td class="label">제한 사항</td>
+                    <td>데이터 삭제 및 서비스 중단 방지를 위해 재현 및 검증 수준에서 진단 수행</td>
+                </tr>
+            </table>
+        </div>
+
+        <h3 style="color: #2d3748; font-size: 1.1rem; margin-top: 20px;">주요 점검 대상 경로</h3>
+        <ul>
+            <li><strong>메인 페이지:</strong> <code>index.php</code></li>
+            <li><strong>게시판:</strong> <code>board.php</code></li>
+            <li><strong>글 작성:</strong> <code>write.php</code></li>
+            <li><strong>글 수정:</strong> <code>edit.php</code></li>
+            <li><strong>회원가입:</strong> <code>register.php</code></li>
+            <li><strong>로그인:</strong> <code>login.php</code></li>
+            <li><strong>프로필 정보:</strong> <code>profile.php</code></li>
+        </ul>
+
+        <!-- 2. 점검 결과 요약 -->
+        <h2 class="section-title">2. 점검 결과 요약</h2>
+        <table class="vuln-table">
+            <thead>
+                <tr>
+                    <th>점검 관점</th>
+                    <th>확인한 위치·기능</th>
+                    <th style="text-align: center; width: 100px;">진단 결과</th>
+                    <th>발견 사항</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>SQL Injection</strong></td>
+                    <td>로그인, 검색 등 입력 파라미터</td>
+                    <td class="status-vuln">취약</td>
+                    <td>로그인 폼 SQLi 입력으로 인증 우회 가능</td>
+                </tr>
+                <tr>
+                    <td><strong>XSS (Cross-Site Scripting)</strong></td>
+                    <td>글쓰기, 댓글, 검색 기능</td>
+                    <td class="status-vuln">취약</td>
+                    <td>게시글 제목 및 댓글 내 악성 스크립트 실행/렌더링 가능</td>
+                </tr>
+                <tr>
+                    <td><strong>인증 & 세션</strong></td>
+                    <td>로그인, 관리자 도구 등</td>
+                    <td class="status-vuln">취약</td>
+                    <td>세션 쿠키 내 HttpOnly 속성 누락 식별</td>
+                </tr>
+                <tr>
+                    <td><strong>IDOR · 접근제어</strong></td>
+                    <td>게시글, 마이페이지 등</td>
+                    <td class="status-vuln">취약</td>
+                    <td>URL 파라미터 변조(edit.php?id=*)를 통한 타 사용자 게시글 접근/수정 가능</td>
+                </tr>
+                <tr>
+                    <td><strong>권한 검사</strong></td>
+                    <td>관리자 페이지, 로그인 필요 기능</td>
+                    <td class="status-none">미확인</td>
+                    <td>점검 범위 내 미확인 항목</td>
+                </tr>
+                <tr>
+                    <td><strong>파일 업로드</strong></td>
+                    <td>첨부파일, 프로필 사진 등</td>
+                    <td class="status-vuln">취약</td>
+                    <td>실행 파일 및 확장자 변조(위장) 파일 업로드 허용</td>
+                </tr>
+                <tr>
+                    <td><strong>정보 노출 & 설정</strong></td>
+                    <td>오류 메시지, 백업 파일 등</td>
+                    <td class="status-none">점검 제외</td>
+                    <td>범위 외 항목으로 점검 제외</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="callout-box">
+            📌 <strong>참고사항</strong>: '양호' 및 '재현 안 됨' 결과는 지정된 진단 범위 및 점검 항목 내에서 수행된 검사 결과이며, 애플리케이션 전체에 대한 절대적인 취약점 부재를 의미하지는 않습니다.
+        </div>
+
+        <!-- 3. 발견한 취약점 상세 -->
+        <h2 class="section-title">3. 발견한 취약점 상세</h2>
+        <div class="vuln-detail-card">
+            <h3>🚨 발견된 주요 취약점 목록</h3>
+            <ol style="margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">
+                    <strong>SQL Injection (인증 우회):</strong> 로그인 폼에 <code>' OR '1'='1</code> 구문 입력 시 비밀번호 검증 없이 로그인 우회 성공
+                </li>
+                <li style="margin-bottom: 10px;">
+                    <strong>Stored / Reflected XSS:</strong> 글 제목 및 댓글에 HTML/JS 스크립트 입력 시 이스케이프 없이 그대로 렌더링되어 실행됨
+                </li>
+                <li style="margin-bottom: 10px;">
+                    <strong>HttpOnly 속성 미설정:</strong> 세션 쿠키에 <code>HttpOnly</code> 플래그가 누락되어 XSS를 통한 쿠키 탈취 가능
+                </li>
+                <li style="margin-bottom: 10px;">
+                    <strong>IDOR (부적절한 접근 제어):</strong> 수정 버튼을 거치지 않고 Direct URL 요청(<code>edit.php?id=*</code>)으로 타 사용자의 게시글 수정 접근 가능
+                </li>
+                <li style="margin-bottom: 10px;">
+                    <strong>웹셸 / 실행 파일 업로드:</strong> 파일 업로드 시 검증 로직이 부재하여 서버 측 실행 파일이 그대로 업로드됨
+                </li>
+                <li>
+                    <strong>우회 파일 업로드:</strong> 확장자만 우회한 위장 파일(예: MIME/확장자 변조 파일)도 검증 없이 업로드 허용
+                </li>
+            </ol>
+        </div>
+
+        <!-- 4. 미확인 항목 및 점검 한계 -->
+        <h2 class="section-title">4. 미확인 항목 및 점검 한계</h2>
+        <ol>
+            <li><strong>파일 삭제 기능 부재</strong>
+                <p style="margin-top: 4px; color: #4a5568 !important;">애플리케이션 내 파일 삭제 인터페이스가 존재하지 않아 관련 접근 제어 및 취약점 점검을 진행하지 못함.</p>
+            </li>
+        </ol>
+
+        <!-- 5. 결론 및 종합 의견 -->
+        <h2 class="section-title">5. 결론 및 종합 의견</h2>
+        <ul>
+            <li><strong>점검한 기능:</strong> 로그인, 회원가입, 게시판, 글 작성/수정, 프로필 페이지 등</li>
+            <li><strong>확인된 취약점:</strong> SQL Injection, XSS, 인증/세션, IDOR, 파일 업로드 등 (다수 발견)</li>
+            <li><strong>우선 수정할 항목:</strong> <code>파일 업로드 취약점</code> (원격 코드 실행 위험) 및 <code>SQL Injection</code></li>
+        </ul>
+
+        <h3 style="color: #2d3748; font-size: 1.1rem; margin-top: 20px;">종합 의견</h3>
+        <p style="line-height: 1.7; color: #2d3748 !important;">
+            진단 대상 애플리케이션 점검 결과, <strong>웹셸 업로드가 가능한 파일 업로드 취약점</strong> 및 <strong>인증 우회가 가능한 SQL Injection</strong>을 포함하여 핵심 기능 전반에 걸쳐 고위험 취약점이 다수 발견되었습니다. 특히 서버 권한 탈취로 이어질 수 있는 파일 업로드 검증 로직 구현과 Prepared Statement 적용을 통한 SQLi 방어가 시급히 이뤄져야 합니다.
+        </p>
+    </div>
+</body>
+</html>
