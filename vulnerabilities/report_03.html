@@ -349,7 +349,7 @@
                 <div class="img-caption">[그림 3.1] SQL Injection 쿼리 입력 및 로그인 우회 확인 화면</div>
             </div>
 
-            <p><strong class="label-blue">상세 내용:</strong> 로그인 폼 입력 파라미터에 <code>' OR '1'='1</code> 구문을 주입할 경우, 서버에서 입력값에 대한 검증 없이 DB 쿼리를 생성하여 참(True) 결과를 반환함에 따라 비밀번호 입력 없이 로그인이 우회되는 현상을 확인하였습니다.</p>
+            <p><strong class="label-blue">상세 내용:</strong> 로그인 폼 입력 파라미터에 <code>admin ' -- </code> 혹은 <code>' OR '1'='1</code> 구문 등을 주입할 경우, 서버에서 입력값에 대한 검증 없이 DB 쿼리를 생성하여 참(True) 결과를 반환함에 따라 비밀번호 입력 없이 로그인이 우회되는 현상을 확인하였습니다.</p>
             <p><strong class="label-blue">대응 방안:</strong> 데이터베이스 조회 시 Prepared Statement 및 Parameterized Query를 사용하여 입력값이 SQL 구문으로 해석되지 않도록 처리해야 합니다.</p>
         </div>
 
