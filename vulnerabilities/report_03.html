@@ -137,30 +137,81 @@
             color: #1a202c !important;
         }
 
-        /* 3. 취약점 상세 카드 */
+        /* 3. 취약점 상세 카드 스타일 (이미지 양식 반영) */
         .vuln-detail-card {
             background-color: #fff5f5 !important;
             border: 1px solid #feb2b2 !important;
-            border-radius: 8px;
-            padding: 18px 20px;
-            margin: 15px 0;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 25px 0;
             color: #2d3748 !important;
         }
 
-        .vuln-detail-card h3 {
-            margin-top: 0;
-            color: #9b2c2c !important;
-            font-size: 1.1rem;
+        .vuln-header-container {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
         }
+
+        .vuln-header-container h3 {
+            margin: 0;
+            color: #9b2c2c !important;
+            font-size: 1.15rem;
+        }
+
+        /* 심각도 배지 */
+        .badge-severity {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            font-weight: bold;
+            color: #ffffff !important;
+        }
+        .badge-high { background-color: #e53e3e; }
+        .badge-medium { background-color: #dd6b20; }
+        .badge-low { background-color: #319795; }
 
         .vuln-detail-card p {
             color: #2d3748 !important;
-            line-height: 1.6;
-            margin: 8px 0;
+            line-height: 1.65;
+            margin: 12px 0;
         }
 
-        .vuln-detail-card strong {
+        .vuln-detail-card p strong.label-blue {
             color: #2b6cb0 !important;
+        }
+
+        /* 이미지 및 캡션 영역 */
+        .img-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .img-box {
+            display: inline-block;
+            max-width: 100%;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .img-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            display: block;
+        }
+
+        .img-caption {
+            font-size: 0.88rem;
+            color: #718096 !important;
+            margin-top: 8px;
+            text-align: center;
         }
     </style>
 </head>
@@ -232,13 +283,13 @@
             <tbody>
                 <tr>
                     <td><strong>SQL Injection</strong></td>
-                    <td>로그인, 검색 등 입력 파라미터</td>
+                    <td>로그인, 검색 등</td>
                     <td class="status-vuln">취약</td>
                     <td>로그인 폼 SQLi 입력으로 인증 우회 가능</td>
                 </tr>
                 <tr>
                     <td><strong>XSS (Cross-Site Scripting)</strong></td>
-                    <td>글쓰기, 댓글, 검색 기능</td>
+                    <td>글쓰기, 댓글, 검색 등</td>
                     <td class="status-vuln">취약</td>
                     <td>게시글 제목 및 댓글 내 악성 스크립트 실행/렌더링 가능</td>
                 </tr>
@@ -262,7 +313,7 @@
                 </tr>
                 <tr>
                     <td><strong>파일 업로드</strong></td>
-                    <td>첨부파일, 프로필 사진 등</td>
+                    <td>첨부파일, 프로필 사진</td>
                     <td class="status-vuln">취약</td>
                     <td>실행 파일 및 확장자 변조(위장) 파일 업로드 허용</td>
                 </tr>
@@ -281,28 +332,120 @@
 
         <!-- 3. 발견한 취약점 상세 -->
         <h2 class="section-title">3. 발견한 취약점 상세</h2>
+
+        <!-- 3.1. SQL Injection -->
         <div class="vuln-detail-card">
-            <h3>🚨 발견된 주요 취약점 목록</h3>
-            <ol style="margin: 0; padding-left: 20px;">
-                <li style="margin-bottom: 10px;">
-                    <strong>SQL Injection (인증 우회):</strong> 로그인 폼에 <code>' OR '1'='1</code> 구문 입력 시 비밀번호 검증 없이 로그인 우회 성공
-                </li>
-                <li style="margin-bottom: 10px;">
-                    <strong>Stored / Reflected XSS:</strong> 글 제목 및 댓글에 HTML/JS 스크립트 입력 시 이스케이프 없이 그대로 렌더링되어 실행됨
-                </li>
-                <li style="margin-bottom: 10px;">
-                    <strong>HttpOnly 속성 미설정:</strong> 세션 쿠키에 <code>HttpOnly</code> 플래그가 누락되어 XSS를 통한 쿠키 탈취 가능
-                </li>
-                <li style="margin-bottom: 10px;">
-                    <strong>IDOR (부적절한 접근 제어):</strong> 수정 버튼을 거치지 않고 Direct URL 요청(<code>edit.php?id=*</code>)으로 타 사용자의 게시글 수정 접근 가능
-                </li>
-                <li style="margin-bottom: 10px;">
-                    <strong>웹셸 / 실행 파일 업로드:</strong> 파일 업로드 시 검증 로직이 부재하여 서버 측 실행 파일이 그대로 업로드됨
-                </li>
-                <li>
-                    <strong>우회 파일 업로드:</strong> 확장자만 우회한 위장 파일(예: MIME/확장자 변조 파일)도 검증 없이 업로드 허용
-                </li>
-            </ol>
+            <div class="vuln-header-container">
+                <h3>🚨 3.1. SQL Injection을 이용한 인증 우회 (취약)</h3>
+                <span class="badge-severity badge-high">심각도: 높음 (High)</span>
+            </div>
+            <p><strong class="label-blue">심각도 분석:</strong> 데이터베이스 쿼리 검증 미비로 인해 공격자가 비밀번호 검증을 우회하고 임의의 계정으로 즉시 인증을 획득할 수 있는 고위험 취약점입니다.</p>
+
+            <div class="img-container">
+                <div class="img-box">
+                    <!-- 나중에 아래 src 속성에 실제 이미지 경로 입력 -->
+                    <img src="https://via.placeholder.com/600x300?text=SQL+Injection+Screenshot" alt="SQL Injection 우회 화면">
+                </div>
+                <div class="img-caption">[그림 3.1] SQL Injection 쿼리 입력 및 로그인 우회 확인 화면</div>
+            </div>
+
+            <p><strong class="label-blue">상세 내용:</strong> 로그인 폼 입력 파라미터에 <code>' OR '1'='1</code> 구문을 주입할 경우, 서버에서 입력값에 대한 검증 없이 DB 쿼리를 생성하여 참(True) 결과를 반환함에 따라 비밀번호 입력 없이 로그인이 우회되는 현상을 확인하였습니다.</p>
+            <p><strong class="label-blue">대응 방안:</strong> 데이터베이스 조회 시 Prepared Statement 및 Parameterized Query를 사용하여 입력값이 SQL 구문으로 해석되지 않도록 처리해야 합니다.</p>
+        </div>
+
+        <!-- 3.2. Stored / Reflected XSS -->
+        <div class="vuln-detail-card">
+            <div class="vuln-header-container">
+                <h3>🚨 3.2. 게시판/댓글 내 Cross-Site Scripting (XSS) (취약)</h3>
+                <span class="badge-severity badge-high">심각도: 높음 (High)</span>
+            </div>
+            <p><strong class="label-blue">심각도 분석:</strong> 사용자가 입력한 악성 자바스크립트 코드가 브라우저에서 실행되어 세션 쿠키 탈취, 악성 사이트 리다이렉트, 세션 피싱 등의 차후 2차 공격으로 연결될 수 있습니다.</p>
+
+            <div class="img-container">
+                <div class="img-box">
+                    <img src="https://via.placeholder.com/600x300?text=XSS+Execution+Screenshot" alt="XSS 실행 화면">
+                </div>
+                <div class="img-caption">[그림 3.2] 글 제목 및 댓글에 입력된 스크립트 실행 화면</div>
+            </div>
+
+            <p><strong class="label-blue">상세 내용:</strong> 글 작성 및 댓글 입력 폼에서 스크립트 태그(예: <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>)를 입력할 때 적절한 이스케이프 처리 없이 그대로 DB에 저장되거나 출력되어 브라우저에서 코드가 렌더링되고 실행되는 것을 확인하였습니다.</p>
+            <p><strong class="label-blue">대응 방안:</strong> 출력 시 HTML Entity Encoding(<code>htmlspecialchars</code> 등)을 적용하여 특수문자를 안전한 문자로 변환하고, 입력 데이터에 대한 Sanitization을 수행해야 합니다.</p>
+        </div>
+
+        <!-- 3.3. HttpOnly 속성 미설정 -->
+        <div class="vuln-detail-card">
+            <div class="vuln-header-container">
+                <h3>🚨 3.3. 세션 쿠키 내 HttpOnly 속성 미설정 (취약)</h3>
+                <span class="badge-severity badge-medium">심각도: 보통 (Medium)</span>
+            </div>
+            <p><strong class="label-blue">심각도 분석:</strong> 단독 취약점만으로는 직접적인 피해를 주기 어렵지만, 추후 애플리케이션 내에 Cross-Site Scripting(XSS) 취약점이 발생할 경우 세션 쿠키 탈취 및 계정 도용으로 이어질 수 있는 연계 공격 요소입니다.</p>
+
+            <div class="img-container">
+                <div class="img-box">
+                    <img src="https://via.placeholder.com/600x300?text=HttpOnly+Missing+Screenshot" alt="HttpOnly 미설정 화면">
+                </div>
+                <div class="img-caption">[그림 3.3] 세션 쿠키 내 HttpOnly 속성 미설정 확인 화면</div>
+            </div>
+
+            <p><strong class="label-blue">상세 내용:</strong> 개발자 도구를 통해 웹 애플리케이션 세션 쿠키를 분석한 결과, 세션 식별자 쿠키에 <code>HttpOnly</code> 플래그가 설정되어 있지 않음을 확인하였습니다. 이에 따라 자바스크립트(<code>document.cookie</code>) 명령을 통해 클라이언트 단에서 세션 쿠키 값에 접근이 가능한 상태입니다.</p>
+            <p><strong class="label-blue">대응 방안:</strong> 서버 측 세션 쿠키 발급 시 <code>HttpOnly</code> 속성을 필수 적용하여 자바스크립트를 통한 쿠키 접근을 차단해야 합니다.</p>
+        </div>
+
+        <!-- 3.4. IDOR (부적절한 접근제어) -->
+        <div class="vuln-detail-card">
+            <div class="vuln-header-container">
+                <h3>🚨 3.4. URL 파라미터 조작을 통한 IDOR 접근 제어 미비 (취약)</h3>
+                <span class="badge-severity badge-high">심각도: 높음 (High)</span>
+            </div>
+            <p><strong class="label-blue">심각도 분석:</strong> 타 사용자의 소유 자원에 무단으로 접근하거나 수정/삭제할 수 있어 데이터 훼손 및 정보 유출 위험이 존재합니다.</p>
+
+            <div class="img-container">
+                <div class="img-box">
+                    <img src="https://via.placeholder.com/600x300?text=IDOR+Edit+Page+Screenshot" alt="IDOR 우회 화면">
+                </div>
+                <div class="img-caption">[그림 3.4] URL 파라미터 변조(edit.php?id=*)를 통한 타인 게시글 수정 화면</div>
+            </div>
+
+            <p><strong class="label-blue">상세 내용:</strong> 게시글 수정 기능 수행 시 UI상의 버튼을 사용하지 않고, URL 파라미터를 <code>edit.php?id=[타인글ID]</code> 형태 직접 요청하더라도 서버 단에서 작성자 세션 일치 여부를 검증하지 않아 타 사용자의 게시글이 정상적으로 수정 및 실행되는 문제를 확인하였습니다.</p>
+            <p><strong class="label-blue">대응 방안:</strong> 서버 측에서 요청 파라미터의 객체 ID에 대해 현재 로그인된 세션 사용자가 접근/수정할 수 있는 권한이 있는지 인가(Authorization) 로직을 필수로 구현해야 합니다.</p>
+        </div>
+
+        <!-- 3.5. 실행 파일 업로드 -->
+        <div class="vuln-detail-card">
+            <div class="vuln-header-container">
+                <h3>🚨 3.5. 서버 측 실행 파일(웹셸) 업로드 허용 (취약)</h3>
+                <span class="badge-severity badge-high">심각도: 높음 (High)</span>
+            </div>
+            <p><strong class="label-blue">심각도 분석:</strong> 공격자가 원격 코드 실행(RCE)을 가능하게 하는 웹셸을 서버에 생성할 수 있어, 서버 전체 권한 탈취 및 시스템 탈취로 이어지는 최고 위험도의 취약점입니다.</p>
+
+            <div class="img-container">
+                <div class="img-box">
+                    <img src="https://via.placeholder.com/600x300?text=Webshell+Upload+Screenshot" alt="웹셸 업로드 화면">
+                </div>
+                <div class="img-caption">[그림 3.5] 서버 측 실행 파일 업로드 성공 화면</div>
+            </div>
+
+            <p><strong class="label-blue">상세 내용:</strong> 첨부파일 및 프로필 파일 업로드 기능 이용 시 확장자 검증 로직이 부재하여 <code>.php</code>, <code>.php5</code> 등의 서버 스크립트 실행 파일이 그대로 업로드되고 저장 경로를 통해 명령어가 실행됨을 확인하였습니다.</p>
+            <p><strong class="label-blue">대응 방안:</strong> 허용된 확장자 목록(White List)만 업로드를 승인하고, 업로드 디렉터리의 실행 권한(Execute Permission)을 제거하며 파일명을 난수화하여 저장해야 합니다.</p>
+        </div>
+
+        <!-- 3.6. 위장 파일 업로드 -->
+        <div class="vuln-detail-card">
+            <div class="vuln-header-container">
+                <h3>🚨 3.6. 확장자 변조(위장 파일) 업로드 검증 우회 (취약)</h3>
+                <span class="badge-severity badge-high">심각도: 높음 (High)</span>
+            </div>
+            <p><strong class="label-blue">심각도 분석:</strong> 파일 검증 우회 기법을 통해 우회 파일 업로드가 성공할 경우 보안 솔루션 탐지를 회피하여 시스템 침투가 가능해집니다.</p>
+
+            <div class="img-container">
+                <div class="img-box">
+                    <img src="https://via.placeholder.com/600x300?text=Bypass+Upload+Screenshot" alt="위장 파일 업로드 화면">
+                </div>
+                <div class="img-caption">[그림 3.6] 확장자 변조 위장 파일 업로드 성공 화면</div>
+            </div>
+
+            <p><strong class="label-blue">상세 내용:</strong> 파일 업로드 검증 시 MIME 타입이나 확장자만을 단순 체크할 경우, 확장자를 변조하거나 이중 확장자 기법을 사용한 위장 파일이 서버 단에서 제대로 필터링되지 않고 전송 및 저장되는 현상을 식별하였습니다.</p>
+            <p><strong class="label-blue">대응 방안:</strong> 클라이언트 헤더 검증 외에도 서버 단에서 파일 헤더(Magic Byte)를 직접 검증하고 Content-Type 재지정 및 확장자 무력화를 적용해야 합니다.</p>
         </div>
 
         <!-- 4. 미확인 항목 및 점검 한계 -->
