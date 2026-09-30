@@ -410,10 +410,10 @@
             <p><strong class="label-blue">대응 방안:</strong> 서버 측에서 요청 파라미터의 객체 ID에 대해 현재 로그인된 세션 사용자가 접근/수정할 수 있는 권한이 있는지 인가(Authorization) 로직을 필수로 구현해야 합니다.</p>
         </div>
 
-        <!-- 3.5. 실행 파일 업로드 -->
+        <!-- 3.5.1. 실행 파일 업로드 -->
         <div class="vuln-detail-card">
             <div class="vuln-header-container">
-                <h3>🚨 3.5. 서버 측 실행 파일(웹셸) 업로드 허용 (취약)</h3>
+                <h3>🚨 3.5.1. 서버 측 실행 파일(웹셸) 업로드 허용 (취약)</h3>
                 <span class="badge-severity badge-high">심각도: 높음 (High)</span>
             </div>
             <p><strong class="label-blue">심각도 분석:</strong> 공격자가 원격 코드 실행(RCE)을 가능하게 하는 웹셸을 서버에 생성할 수 있어, 서버 전체 권한 탈취 및 시스템 탈취로 이어지는 최고 위험도의 취약점입니다.</p>
@@ -422,17 +422,17 @@
                 <div class="img-box">
                     <img src="images/report03_file1.png" alt="웹셸 업로드 화면">
                 </div>
-                <div class="img-caption">[그림 3.5] 서버 측 실행 파일 업로드 성공 화면</div>
+                <div class="img-caption">[그림 3.5.1] 서버 측 실행 파일 업로드 성공 화면</div>
             </div>
 
             <p><strong class="label-blue">상세 내용:</strong> 첨부파일 및 프로필 파일 업로드 기능 이용 시 확장자 검증 로직이 부재하여 <code>.php</code>, <code>.php5</code> 등의 서버 스크립트 실행 파일이 그대로 업로드되고 저장 경로를 통해 명령어가 실행됨을 확인하였습니다.</p>
             <p><strong class="label-blue">대응 방안:</strong> 허용된 확장자 목록(White List)만 업로드를 승인하고, 업로드 디렉터리의 실행 권한(Execute Permission)을 제거하며 파일명을 난수화하여 저장해야 합니다.</p>
         </div>
 
-        <!-- 3.6. 위장 파일 업로드 -->
+        <!-- 3.5.2. 위장 파일 업로드 -->
         <div class="vuln-detail-card">
             <div class="vuln-header-container">
-                <h3>🚨 3.6. 확장자 변조(위장 파일) 업로드 검증 우회 (취약)</h3>
+                <h3>🚨 3.5.2. 확장자 변조(위장 파일) 업로드 검증 우회 (취약)</h3>
                 <span class="badge-severity badge-high">심각도: 높음 (High)</span>
             </div>
             <p><strong class="label-blue">심각도 분석:</strong> 파일 검증 우회 기법을 통해 우회 파일 업로드가 성공할 경우 보안 솔루션 탐지를 회피하여 시스템 침투가 가능해집니다.</p>
@@ -441,7 +441,7 @@
                 <div class="img-box">
                     <img src="images/report03_file2.png" alt="위장 파일 업로드 화면">
                 </div>
-                <div class="img-caption">[그림 3.6] 확장자 변조 위장 파일 업로드 성공 화면</div>
+                <div class="img-caption">[그림 3.5.2] 확장자 변조 위장 파일 업로드 성공 화면</div>
             </div>
 
             <p><strong class="label-blue">상세 내용:</strong> 파일 업로드 검증 시 MIME 타입이나 확장자만을 단순 체크할 경우, 확장자를 변조하거나 이중 확장자 기법을 사용한 위장 파일이 서버 단에서 제대로 필터링되지 않고 전송 및 저장되는 현상을 식별하였습니다.</p>
