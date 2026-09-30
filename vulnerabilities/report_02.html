@@ -218,8 +218,15 @@
         }
 
         .vuln-proof-img {
-            margin: 15px 0;
-            text-align: center;
+            max-width: 450px; /* 원하는 최대 너비로 제한 (필요시 400px~500px 조정) */
+            width: auto;      /* 원본 비율 유지하면서 억지로 늘어나지 않게 설정 */
+            height: auto;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            margin: 10px auto;
+            display: block;   /* 가운데 정렬 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
         }
 
         .vuln-proof-img img {
@@ -374,28 +381,29 @@
             </div>
         </section>
 
-        <!-- 3. 발견한 취약점 상세 -->
-        <section>
-            <h2 class="section-title">3. 발견한 취약점 상세</h2>
-            <article class="vuln-detail-card">
-                <h3>
-                    🚨 3.1. 세션 쿠키 내 HttpOnly 속성 미설정 (취약)
-                    <span class="severity-badge">심각도: 보통 (Medium)</span>
-                </h3>
-                
-                <p><strong>심각도 분석:</strong> 단독 취약점만으로는 직접적인 피해를 주기 어렵지만, 추후 애플리케이션 내에 Cross-Site Scripting(XSS) 취약점이 발생할 경우 세션 쿠키 탈취 및 계정 도용으로 이어질 수 있는 연계 공격 요소입니다.</p>
-
-                <!-- 이미지 추가 영역 -->
-                <figure class="vuln-proof-img">
-                    <!-- HTML 코드의 이미지 태그 부분 -->
-                    <img src="report2_cookie.png" alt="개발자 도구에서 PHPSESSID 쿠키의 HttpOnly 속성이 비어있는 증빙 화면" class="vuln-proof-img">    
-                    <figcaption>[그림 3.1] PHPSESSID 세션 쿠키 내 HttpOnly 속성 미설정 확인 화면</figcaption>
-                </figure>
-
-                <p><strong>상세 내용:</strong> 개발자 도구를 통해 웹 애플리케이션 세션 쿠키를 분석한 결과, 세션 식별자인 <code>PHPSESSID</code> 및 <code>__test</code> 쿠키에 <code>HttpOnly</code> 플래그가 설정되어 있지 않음을 확인하였습니다. 이에 따라 자바스크립트(<code>document.cookie</code>) 명령을 통해 클라이언트 단에서 세션 쿠키 값에 접근이 가능한 상태입니다.</p>
-                <p><strong>대응 방안:</strong> 서버 측 세션 쿠키 발급 시 <code>HttpOnly</code> 속성을 필수로 설정하여 자바스크립트를 통한 쿠키 접근을 차단해야 합니다.</p>
-            </article>
-        </section>
+         <!-- 3. 발견한 취약점 상세 -->
+    <section>
+        <h2 class="section-title">3. 발견한 취약점 상세</h2>
+        <article class="vuln-detail-card">
+            <h3>
+                🚨 3.1. 세션 쿠키 내 HttpOnly 속성 미설정 (취약)
+                <span class="severity-badge">심각도: 보통 (Medium)</span>
+            </h3>
+            
+            <p><strong>심각도 분석:</strong> 단독 취약점만으로는 직접적인 피해를 주기 어렵지만, 추후 애플리케이션 내에 Cross-Site Scripting(XSS) 취약점이 발생할 경우 세션 쿠키 탈취 및 계정 도용으로 이어질 수 있는 연계 공격 요소입니다.</p>
+    
+            <!-- 이미지 영역 (크기 제어 및 중앙 정렬 적용) -->
+            <figure style="text-align: center; margin: 20px 0;">
+                <img src="report2_cookie.png" 
+                     alt="개발자 도구에서 PHPSESSID 쿠키의 HttpOnly 속성이 비어있는 증빙 화면" 
+                     style="max-width: 400px; width: auto; height: auto; border: 1px solid #cbd5e0; border-radius: 6px; display: block; margin: 0 auto; box-shadow: 0 2px 5px rgba(0,0,0,0.08);">   
+                <figcaption style="font-size: 0.85rem; color: #718096 !important; margin-top: 8px;">[그림 3.1] PHPSESSID 세션 쿠키 내 HttpOnly 속성 미설정 확인 화면</figcaption>
+            </figure>
+    
+            <p><strong>상세 내용:</strong> 개발자 도구를 통해 웹 애플리케이션 세션 쿠키를 분석한 결과, 세션 식별자인 <code>PHPSESSID</code> 및 <code>__test</code> 쿠키에 <code>HttpOnly</code> 플래그가 설정되어 있지 않음을 확인하였습니다. 이에 따라 자바스크립트(<code>document.cookie</code>) 명령을 통해 클라이언트 단에서 세션 쿠키 값에 접근이 가능한 상태입니다.</p>
+            <p><strong>대응 방안:</strong> 서버 측 세션 쿠키 발급 시 <code>HttpOnly</code> 속성을 필수로 설정하여 자바스크립트를 통한 쿠키 접근을 차단해야 합니다.</p>
+        </article>
+    </section>
 
         <!-- 4. 미확인 항목 및 점검 한계 -->
         <section>
